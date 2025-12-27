@@ -5,13 +5,19 @@ from PIL import Image
 
 @st.cache_resource
 def load_my_model():
-    return tf.keras.models.load_model("cat_dog_model.keras")
+    return tf.keras.models.load_model(
+        "cat_dog_model.keras",
+        compile=False
+    )
 
 model = load_my_model()
 
 st.title("Cat vs Dog Image Recognition")
 
-uploaded_file = st.file_uploader("Upload an image", type=["jpg", "png", "jpeg"])
+uploaded_file = st.file_uploader(
+    "Upload an image",
+    type=["jpg", "jpeg", "png"]
+)
 
 if uploaded_file:
     img = Image.open(uploaded_file).convert("RGB")
@@ -27,3 +33,4 @@ if uploaded_file:
         st.success("Dog 🐶")
     else:
         st.success("Cat 🐱")
+
