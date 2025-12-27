@@ -1,44 +1,36 @@
 import streamlit as st
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
+import tensorflow as tf
 import numpy as np
 from PIL import Image
-import os
 
 st.title("Cat vs Dog Image Recognition")
-st.write("Upload an image and the model will predict if it's a Cat or Dog.")
 
-# -------------------------------
-# Load model safely
-# -------------------------------
+# Safe model loading
 @st.cache_data
 def load_my_model():
-    model_path = "cat_dog_model_fixed.keras"  # Make sure this file is uploaded
-    if not os.path.exists(model_path):
-        st.warning(f"Model file '{model_path}' not found!")
-        return None
     try:
-        model = load_model(model_path, compile=False)
-        st.success("Model loaded successfully!")
+        model = tf.keras.models.load_model("cat_dog_model.keras", compile=False)
         return model
     except Exception as e:
-        st.error(f"Failed to load model: {e}")
+        st.error(f"Error loading model: {e}")
         return None
 
 model = load_my_model()
 
-# -------------------------------
-# Image upload and prediction
-# -------------------------------
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "jpeg", "png"])
 
-if uploaded_file and model is not None:
-    img = Image.open(uploaded_file).resize((224, 224))
-    st.image(img, caption='Uploaded Image', use_column_width=True)
+if uploaded_file and model:
+    img = Image.open(uploaded_file).convert("RGB")
+    
+    # Get model input shape
+    input_shape = model.input_shape[1:3]  # (height, width)
+    img = img.resize(input_shape)
+    
+    st.image(img, caption="Uploaded Image", use_column_width=True)
 
     # Preprocess image
-    x = image.img_to_array(img)
-    x = np.expand_dims(x, axis=0) / 255.0
+    x = np.array(img)/255.0
+    x = np.expand_dims(x, axis=0)
 
     # Predict
     pred = model.predict(x)
@@ -46,5 +38,6 @@ if uploaded_file and model is not None:
         st.success("Prediction: Dog 🐶")
     else:
         st.success("Prediction: Cat 🐱")
-elif uploaded_file and model is None:
+elif uploaded_file:
     st.warning("Cannot make predictions because the model failed to load.")
+
