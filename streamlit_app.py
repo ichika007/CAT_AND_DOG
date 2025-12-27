@@ -8,7 +8,7 @@ from PIL import Image
 # -----------------------
 @st.cache_resource
 def load_my_model():
-    model = tf.keras.models.load_model("cat_dog_model_fixed (1).keras", compile=False)
+    model = tf.keras.models.load_model("cat_dog_model_fixed.keras", compile=False)
     return model
 
 model = load_my_model()
