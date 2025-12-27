@@ -9,7 +9,8 @@ st.set_page_config(page_title="Cat vs Dog Classifier")
 # Cache the model so it loads only once
 @st.cache_resource
 def load_my_model():
-    return tf.keras.models.load_model("cat_dog_model.h5")
+    return tf.keras.models.load_model("cat_dog_model.h5", compile=False)
+
 
 model = load_my_model()
 
