@@ -5,10 +5,10 @@ from PIL import Image
 
 @st.cache_resource
 def load_my_model():
-    return tf.keras.models.load_model(
-        "cat_dog_model.keras",
-        compile=False
-    )
+ return tf.keras.models.load_model(
+    "cat_dog_model_fixed.keras",
+    compile=False
+)
 
 model = load_my_model()
 
