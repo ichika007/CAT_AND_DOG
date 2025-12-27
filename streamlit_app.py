@@ -1,47 +1,50 @@
 import streamlit as st
 import tensorflow as tf
+from tensorflow.keras.preprocessing import image
 import numpy as np
 from PIL import Image
 
-# -----------------------
-# Load Model with Cache
-# -----------------------
+st.set_page_config(page_title="Cat vs Dog Classifier", layout="centered")
+st.title("🐱🐶 Cat vs Dog Image Recognition")
+st.write("Upload an image, and the model will predict whether it's a Cat or Dog.")
+
+# Function to safely load model
 @st.cache_resource
-def load_my_model():
-    model = tf.keras.models.load_model("cat_dog_model_fixed.keras", compile=False)
-    return model
+def load_model_safe(model_path):
+    try:
+        model = tf.keras.models.load_model(model_path, compile=False)
+        return model
+    except ValueError as e:
+        st.error(f"Failed to load model: {e}")
+        return None
+    except OSError as e:
+        st.error(f"Model file not found or corrupted: {e}")
+        return None
 
-model = load_my_model()
+# Load your model
+model = load_model_safe("cat_dog_model_fixed.keras")  # Make sure this file exists
 
-# -----------------------
-# Streamlit UI
-# -----------------------
-st.title("🐱 vs 🐶 Cat vs Dog Image Recognition")
-st.write("Upload an image and the model will predict if it's a Cat or Dog.")
+if model is None:
+    st.stop()  # Stop the app if model cannot be loaded
 
-# File uploader
+# Upload image
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Load image
-    img = Image.open(uploaded_file).convert("RGB").resize((224, 224))
+    # Open and display image
+    img = Image.open(uploaded_file).convert('RGB').resize((224, 224))
     st.image(img, caption='Uploaded Image', use_column_width=True)
 
     # Preprocess image
-    x = np.array(img)/255.0               # Normalize pixel values
-    x = np.expand_dims(x, axis=0)         # Add batch dimension
+    x = image.img_to_array(img)
+    x = np.expand_dims(x, axis=0) / 255.0
 
     # Predict
-    pred = model.predict(x)
-    confidence = float(pred[0][0])
-
-    if confidence > 0.5:
-        st.success(f"Prediction: Dog 🐶 ({confidence*100:.2f}% confidence)")
-    else:
-        st.success(f"Prediction: Cat 🐱 ({(1-confidence)*100:.2f}% confidence)")
-
-# Optional: Footer
-st.markdown("---")
-st.write("Model trained on Cats vs Dogs dataset. Resize images to 224x224 for best results.")
-
-
+    try:
+        pred = model.predict(x)
+        if pred[0][0] > 0.5:
+            st.success("Prediction: Dog 🐶")
+        else:
+            st.success("Prediction: Cat 🐱")
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
